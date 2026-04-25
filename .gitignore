@@ -1,0 +1,63 @@
+### Visual Studio
+/.vs/
+*.user
+*.suo
+*.userosscache
+
+### Build outputs
+/bin/
+/obj/
+**/bin/
+**/obj/
+
+### NuGet
+/packages/
+*.nupkg
+
+### Rider
+.idea/
+
+### Visual Studio Code
+/.vscode/
+
+### ASP.NET Core and app settings (local secrets)
+appsettings.Development.json
+appsettings.*.Local.json
+secrets.json
+*.Secret.json
+
+### User-specific files
+*.log
+*.cache
+*.pid
+
+### OS generated files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+### Dotnet tool/cache
+/.dotnet/
+
+### Test results
+/TestResults/
+**/TestResults/
+
+### Entity Framework migration snapshots (if you keep local-only snapshots)
+*.ModelSnapshot.cs
+
+### Environment files
+.env
+.env.*
+
+### Package managers and front-end
+/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+### User secrets (if using dotnet user-secrets)
+/secrets/
+
+### OneDrive/Temp files
+~$*
