@@ -21,12 +21,11 @@ namespace TravelPlanner.Application.Services
 
         public async Task<string> GenerateRouteAsync(string cityName, string countryName, string wakeUpTime, string userNotes)
         {
-            // 1. API Key'i Configuration'dan (appsettings.json) alıyoruz.
-            // Eğer orada yoksa ve test için sabit key kullanmak istersen sağ tarafa kendi key'ini yazabilirsin.
-            var apiKey = _config["Gemini:ApiKey"] ?? "AIzaSyAa5UaNttMUKjP2H6WFeZs6VabZnw0Rbig";
+            // 1. API Key'i SADECE appsettings'den çekiyoruz. Kodun içinde şifre yok!
+            var apiKey = _config["Gemini:ApiKey"];
 
-            if (string.IsNullOrWhiteSpace(apiKey))
-                throw new InvalidOperationException("Gemini API key bulunamadı. Lütfen appsettings.json dosyasını veya koddaki atamayı kontrol edin.");
+            if (string.IsNullOrWhiteSpace(apiKey) || apiKey == "BURAYA_GIRILMEYECEK" || apiKey == "API_KEY_BURAYA_GIRILMEYECEK")
+                throw new InvalidOperationException("Gemini API key bulunamadı. Lütfen appsettings.Development.json dosyasını kontrol edin.");
 
             // 2. Gelen verileri kontrol etme ve varsayılan değer atama
             // Eğer kullanıcı saat seçmediyse varsayılan olarak 09:00 atıyoruz.
@@ -43,10 +42,8 @@ namespace TravelPlanner.Application.Services
                          $"{extraNotesInstruction}" +
                          $"DİKKAT: Hiçbir selamlama, giriş veya kapanış cümlesi kurma. Sadece '{startTime} - Aktivite' formatında rotayı yaz. 22:00 aktivitesini yazdıktan sonra metni anında bitir ve başka hiçbir şey ekleme.";
 
-            // 4. Endpoint Ayarı (En kararlı çalışan 2.0-flash sürümü kullanıldı)
-            // Sadece v1'i v1beta yaptık. Artık model adını sorunsuz tanıyacak.
-// Hem 404 (bulunamadı) hatasını hem de 429 (limit: 0) kota hatasını çözen doğru sürüm:
-var endpoint = $"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={apiKey}";
+            // 4. Endpoint Ayarı (En kararlı çalışan 2.5-flash sürümü kullanıldı)
+            var endpoint = $"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={apiKey}";
 
             // 5. Request Body Oluşturma
             var requestBody = new
