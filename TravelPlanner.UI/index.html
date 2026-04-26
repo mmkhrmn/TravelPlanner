@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Seyahat Planlayıcı</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E✈️%3C/text%3E%3C/svg%3E">
   <style>
     body { background: #f7f9fc; }
     .hero { padding: 4rem 1rem; text-align: center; }
     .card { border: 0; box-shadow: 0 6px 18px rgba(20,30,60,0.08); }
+    .route-result { white-space: pre-wrap; }
   </style>
 </head>
 <body>
@@ -40,10 +42,31 @@
           <div class="text-end">
             <small class="text-muted">Veriler API'den çekilmektedir.</small>
           </div>
+          <div class="row g-3 mt-3">
+            <div class="col-md-6">
+              <label for="wakeUpTime" class="form-label">Güne Başlama Saati</label>
+              <input id="wakeUpTime" type="time" class="form-control" />
+            </div>
+            <div class="col-md-12">
+              <label for="travelNotes" class="form-label">Özel İstekler / Notlar</label>
+              <textarea id="travelNotes" class="form-control" rows="3" placeholder="Özel isteklerinizi veya notlarınızı yazın..."></textarea>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end mt-3">
+            <button id="btnCreateRoute" class="btn btn-primary">Rota Oluştur</button>
+          </div>
         </div>
       </div>
     </div>
   </main>
+
+  <div class="container mb-5">
+    <div id="routeResult" class="card p-3 d-none">
+      <h5 class="mb-2">Oluşturulan Rota</h5>
+      <div id="routeResultContent" class="route-result text-dark"></div>
+    </div>
+  </div>
 
   <script>
     // Base URL of the API
@@ -136,6 +159,56 @@
 
       Not: Geliştirme ortamında basitçe AllowAnyOrigin kullanabilirsiniz, üretimde güvenli bir origin listesi tanımlayın.
     */
+    // New route creation elements
+    const wakeUpTime = document.getElementById('wakeUpTime');
+    const travelNotes = document.getElementById('travelNotes');
+    const btnCreateRoute = document.getElementById('btnCreateRoute');
+
+    const routeResult = document.getElementById('routeResult');
+    const routeResultContent = document.getElementById('routeResultContent');
+
+    btnCreateRoute.addEventListener('click', async () => {
+      const countryName = countrySelect.options[countrySelect.selectedIndex]?.text || '';
+      const cityName = citySelect.options[citySelect.selectedIndex]?.text || '';
+      const wake = wakeUpTime.value || '';
+      const notes = travelNotes.value || '';
+
+      const payload = {
+        CountryName: countryName,
+        CityName: cityName,
+        WakeUpTime: wake,
+        UserNotes: notes
+      };
+
+      try {
+        const res = await fetch(`${apiBase}/api/route/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        // Show raw status on error
+        if (!res.ok) {
+          const txt = await res.text();
+          routeResultContent.textContent = `Sunucu hatası: ${res.status}\n${txt}`;
+          routeResult.classList.remove('d-none');
+          return;
+        }
+
+        const result = await res.json();
+        console.log('Route generate result:', result);
+
+        const msg = result.Message ?? result.message ?? '';
+        const draft = result.DraftRoute ?? result.draftRoute ?? '';
+        routeResultContent.textContent = msg + '\n\n' + draft;
+        routeResult.classList.remove('d-none');
+        routeResult.scrollIntoView({ behavior: 'smooth' });
+      } catch (err) {
+        console.error('Rota oluşturma hatası:', err);
+        routeResultContent.textContent = 'Rota oluşturulurken hata: ' + (err.message || err);
+        routeResult.classList.remove('d-none');
+      }
+    });
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
