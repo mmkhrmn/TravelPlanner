@@ -162,9 +162,6 @@ localhost\SQLEXPRESS
 
 ```text
 YOUR_SERVER_NAME
-```
-
-> ⚠️ Gerçek Gemini API key’inizi GitHub’a göndermeyin. `appsettings.json` içinde gerçek key varsa commit atmadan önce key’i silin veya placeholder değer kullanın.
 
 ---
 
@@ -366,20 +363,6 @@ http://localhost:5146/api/countries
 <img src="images/rota-sonucu.png" alt="Rota Oluşturma Sonucu" width="900">
 
 ---
-
-## 🔐 Güvenlik Notu
-
-Bu proje Gemini API key kullanır.
-
-Gerçek API key değerlerini doğrudan GitHub’a göndermeyin. `appsettings.json` dosyasında gerçek key kullanıyorsanız commit atmadan önce key’i silin veya örnek placeholder değer ile değiştirin.
-
-Örnek güvenli placeholder:
-
-```json
-"Gemini": {
-  "ApiKey": "API_KEY_BURAYA_GIRILMEYECEK"
-}
-```
 
 ---
 
