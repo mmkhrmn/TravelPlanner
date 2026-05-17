@@ -1,91 +1,190 @@
-# ✈️ Seyahat Planlayıcı (TravelPlanner)
+# TravelPlanner
 
-Gideceğiniz ülkeyi, şehri, güne başlama saatinizi ve özel isteklerinizi belirterek saniyeler içinde size özel, saat saat planlanmış bir seyahat programı elde edebilirsiniz.
+TravelPlanner, kullanıcıların seyahat planlarını oluşturabileceği, düzenleyebileceği ve yönetebileceği ASP.NET Core tabanlı bir web uygulamasıdır.
 
-![Proje Durumu](https://img.shields.io/badge/Durum-Geliştirme_Aşamasında-success)
-![Versiyon](https://img.shields.io/badge/Versiyon-1.0.0-blue)
+## 🚀 Özellikler
 
----
-
-## ✨ Özellikler
-
-* **🤖 Yapay Zeka Destekli Rota:** Kullanıcı tercihlerine göre optimize edilmiş, akıllı ve gerçekçi günlük planlar.
-* **🌍 Dinamik Veri Çekimi:** Ülke ve şehir listeleri arka plandaki .NET API'den anlık olarak beslenir.
-* **🎨 Modern ve Zarif Arayüz (UI/UX):** Apple/Airbnb tasarım dilinden ilham alınmış, cam efekti (glassmorphism) ve yumuşak animasyonlarla desteklenmiş premium tasarım.
-* **⏱️ İnteraktif Zaman Çizelgesi (Timeline):** Oluşturulan rotanın kullanıcıyı yormayan, görsel olarak zenginleştirilmiş bir çizelge ile sunulması.
-* **📱 Tam Uyumlu (Responsive):** Mobil cihazlarda alt alta, geniş ekranlarda yan yana (Dashboard) kusursuz görünüm.
+- Seyahat planı oluşturma
+- Plan düzenleme ve silme işlemleri
+- ASP.NET Core MVC mimarisi
+- Entity Framework Core kullanımı
+- Responsive tasarım
+- SQL Server veritabanı desteği
+- SQLite desteği (alternatif kullanım)
 
 ---
 
-## 🛠️ Kullanılan Teknolojiler
+# 🛠️ Kullanılan Teknolojiler
 
-**Frontend (Ön Yüz)**
-* HTML5, CSS3, Vanilla JavaScript
-* Bootstrap 5.3.2
-* Bootstrap Icons
-* Google Fonts (Poppins)
-
-**Backend (Arka Yüz)**
-* C# / .NET Core 8.0 (Web API)
-* Entity Framework Core (ORM)
-* SQL Server / SQLite (Veritabanı)
-* Yapay Zeka Entegrasyonu (LLM)
+- ASP.NET Core
+- C#
+- Entity Framework Core
+- SQL Server
+- SQLite
+- Razor Views
+- Bootstrap
 
 ---
 
-## 🚀 Kurulum Rehberi (Adım Adım)
+# 📦 Gereksinimler
 
-Projeyi başka bir bilgisayarda sıfırdan çalıştırmak için bu adımları izleyin.
+Projeyi çalıştırabilmek için sisteminizde aşağıdakilerin kurulu olması gerekir:
 
-### 1. Projeyi Klonlayın ve Paketleri İndirin
-Kodu bilgisayarınıza indirdikten sonra terminali açın ve gerekli tüm kütüphaneleri (NuGet paketlerini) sisteme yükleyin:
+- .NET SDK 8.0 veya üzeri
+- SQL Server (varsayılan kullanım için)
+
+.NET SDK indirmek için:
+
+https://dotnet.microsoft.com/download
+
+---
+
+# ⚙️ Kurulum
+
+## 1. Projeyi Klonlayın
 
 ```bash
-git clone [https://github.com/elifselmanmelih/TravelPlanner.git](https://github.com/elifselmanmelih/TravelPlanner.git)
-cd TravelPlanner/TravelPlanner.API
-dotnet restore
+git clone https://github.com/elifselmanmelih/TravelPlanner.git
 ```
-2. Kritik Yapılandırma (ApiKey ve Veritabanı)
-appsettings.json dosyasını bir editörle açın ve aşağıdaki iki alanı kendinize göre güncelleyin. Bu adım olmadan uygulama rota oluşturamaz ve veritabanına bağlanamaz:
+
 ```bash
+cd TravelPlanner
+```
+
+---
+
+# 🗄️ SQL Server Yapılandırması
+
+`appsettings.json` dosyasında SQL Server bağlantı bilgilerinizi düzenleyin:
+
+```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=KENDI_SERVER_ADINIZ;Database=TravelPlannerDb;Trusted_Connection=True;TrustServerCertificate=True;"
-  },
-  "AiSettings": {
-    "ApiKey": "BURAYA_KENDI_API_KEYINIZI_YAZIN"
+    "DefaultConnection": "Server=YOUR_SERVER_NAME;Database=TravelPlannerDb;Trusted_Connection=True;TrustServerCertificate=True;"
   }
 }
 ```
-3. Veritabanını Oluşturun
-SQL Server üzerinde gerekli tabloların ve örnek verilerin (şehirler/ülkeler) oluşması için şu komutu çalıştırın:
+
+---
+
+## 2. Migration İşlemleri
+
+Migration oluşturmak için:
+
+```bash
+dotnet ef migrations add InitialCreate
+```
+
+Veritabanını oluşturmak için:
+
 ```bash
 dotnet ef database update
 ```
-4. Uygulamayı Başlatın
-Backend: Terminale dotnet run yazın. API http://localhost:5146 adresinde çalışacaktır.
 
-Frontend: index.html dosyasını VS Code Live Server eklentisi ile açın.
-SQL Server Kurulu Değilse (Hızlı Çözüm)
-Eğer SQL Server kurulu olmayan bir bilgisayarda çalıştıracaksanız, SQLite kullanarak projeyi hızlıca "Tak-Çalıştır" hale getirebilirsiniz:
+---
 
-1. Paketleri İndirin:
+# ▶️ Projeyi Çalıştırma
 
-```bash 
-dotnet add package Microsoft.EntityFrameworkCore.Sqlite
-dotnet add package Microsoft.EntityFrameworkCore.Design
+```bash
+dotnet run
 ```
-2. Ayar Değiştirin: appsettings.json içindeki bağlantıyı aşağıdaki gibi yapın:
-```bash 
-JSON
-"ConnectionStrings": {
-  "DefaultConnection": "Data Source=TravelPlanner.db"
+
+
+# 🗄️ SQLite Kullanmak İsteyenler İçin
+
+Proje varsayılan olarak SQL Server ile çalışmaktadır. Ancak daha hafif ve kurulum gerektirmeyen bir veritabanı sistemi kullanmak isteyenler için SQLite desteği kolayca eklenebilir.
+
+SQLite, ekstra SQL Server kurulumu gerektirmeden tek bir `.db` dosyası ile çalışan hafif bir veritabanıdır.
+
+---
+
+## 1. SQLite Paketlerini Yükleyin
+
+```bash
+dotnet add package Microsoft.EntityFrameworkCore.Sqlite
+dotnet add package Microsoft.EntityFrameworkCore.Tools
+```
+
+---
+
+## 2. DbContext Yapılandırmasını Güncelleyin
+
+`Program.cs` dosyasındaki SQL Server bağlantısını:
+
+```csharp
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
+```
+
+şununla değiştirin:
+
+```csharp
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
+```
+
+---
+
+## 3. appsettings.json Dosyasını Düzenleyin
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Data Source=travelplanner.db"
+  }
 }
 ```
-3. Kodu Güncelleyin: Program.cs içinde .UseSqlServer yerine .UseSqlite yazın.
 
-4. Veritabanı İnşa Edin: Mevcut Migrations klasörünü silip sırasıyla şu komutları çalıştırın:
+---
 
-Bash
-dotnet ef migrations add Initial
+## 4. SQLite Migration Oluşturun
+
+```bash
+dotnet ef migrations add SqliteInit
+```
+
+---
+
+## 5. SQLite Veritabanını Oluşturun
+
+```bash
 dotnet ef database update
+```
+
+Bu işlem sonunda proje klasörü içerisinde `travelplanner.db` adlı SQLite veritabanı dosyası oluşacaktır.
+
+---
+
+# 📁 Proje Yapısı
+
+```text
+TravelPlanner/
+│
+├── Controllers/
+├── Models/
+├── Views/
+├── Data/
+├── wwwroot/
+├── appsettings.json
+├── Program.cs
+└── TravelPlanner.csproj
+```
+
+---
+
+# 💾 SQLite Veritabanını Görüntüleme
+
+SQLite veritabanını görüntülemek için aşağıdaki araçlardan biri kullanılabilir:
+
+- DB Browser for SQLite
+- SQLiteStudio
+
+DB Browser for SQLite:
+
+https://sqlitebrowser.org/
+
+---
+
+# Görseller
