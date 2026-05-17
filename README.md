@@ -188,3 +188,13 @@ https://sqlitebrowser.org/
 ---
 
 # Görseller
+
+# 📸 Uygulama Görselleri
+
+## Ana Sayfa
+
+<img src="images/ana-sayfa.png" alt="Ana Sayfa" width="900">
+
+## Rota Oluşturma Sonucu
+
+<img src="images/rota-sonucu.png" alt="Rota Oluşturma Sonucu" width="900">
