@@ -21,7 +21,6 @@
       font-size: 0.9rem;
     }
 
-    /* Minimalist Header */
     .app-header {
       padding: 1.5rem 0;
       margin-bottom: 1rem;
@@ -37,7 +36,6 @@
       letter-spacing: -0.5px;
     }
 
-    /* Kart Tasarımları */
     .glass-card { 
       background: rgba(255, 255, 255, 0.95);
       border-radius: 16px;
@@ -74,7 +72,7 @@
       font-size: 0.9rem;
       font-weight: 500;
       transition: all 0.2s ease;
-      width: 100%; /* Butonu tam genişlik yaptık */
+      width: 100%;
     }
 
     .btn-create:hover {
@@ -83,12 +81,6 @@
       box-shadow: 0 6px 15px rgba(37, 99, 235, 0.25);
     }
 
-    .icon-spacing {
-      margin-right: 6px;
-      color: #3b82f6;
-    }
-
-    /* --- ZARİF ZAMAN ÇİZELGESİ (TIMELINE) TASARIMI --- */
     .itinerary-timeline {
       position: relative;
       padding-left: 1.5rem;
@@ -192,7 +184,6 @@
       }
     }
 
-    /* Boş Durum (Empty State) İkonu İçin */
     .empty-state-icon {
       font-size: 3.5rem;
       color: #94a3b8;
@@ -229,7 +220,7 @@
           <div class="mb-3">
             <label for="citySelect" class="form-label">Şehir Seçiniz <span class="text-danger">*</span></label>
             <select id="citySelect" class="form-select" disabled>
-              <option value="">Önce Şehir seçin</option>
+              <option value="">Önce ülke seçin</option>
             </select>
           </div>
 
@@ -250,12 +241,6 @@
           <button id="btnCreateRoute" class="btn btn-primary btn-create text-white">
             <i class="bi bi-send-fill me-2"></i>Rotamı Oluştur
           </button>
-          
-          <div class="text-center mt-3">
-            <small class="text-muted" style="font-size: 0.75rem;">
-              
-            </small>
-          </div>
         </div>
       </div>
 
@@ -264,7 +249,7 @@
           
           <div id="emptyState" class="h-100 d-flex flex-column align-items-center justify-content-center text-center py-5">
             <i class="bi bi-map empty-state-icon"></i>
-            <h5 class="fw-semibold text-slate-700 mb-2" style="color: #334155;">Rotanız Burada Görünecek</h5>
+            <h5 class="fw-semibold mb-2" style="color: #334155;">Rotanız Burada Görünecek</h5>
             <p class="text-muted mb-0" style="max-width: 300px;">
               Yandaki formu doldurun ve sizin için en mükemmel seyahat planını hazırlayalım.
             </p>
@@ -286,76 +271,137 @@
   </main>
 
   <script>
-    const apiBase = 'http://localhost:5146';
+    const apiBase = window.location.port === '5146'
+      ? window.location.origin
+      : 'http://localhost:5146';
+
     const countrySelect = document.getElementById('countrySelect');
     const citySelect = document.getElementById('citySelect');
     const emptyState = document.getElementById('emptyState');
+    const wakeUpTime = document.getElementById('wakeUpTime');
+    const travelNotes = document.getElementById('travelNotes');
+    const btnCreateRoute = document.getElementById('btnCreateRoute');
+    const routeResult = document.getElementById('routeResult');
+    const routeResultContent = document.getElementById('routeResultContent');
+    const formError = document.getElementById('formError');
 
-    // Ülkeleri Çek
-    document.addEventListener('DOMContentLoaded', async () => {
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function formatAiText(value) {
+      return escapeHtml(value)
+        .replace(/\*\*(.*?)\*\*/g, '<span class="ai-bold-text">$1</span>')
+        .replace(/\*(.*?)\*/g, '<span class="ai-bold-text">$1</span>');
+    }
+
+    async function loadCountries() {
       try {
-        const res = await fetch(${apiBase}/api/countries);
-        if (!res.ok) throw new Error('Ağ hatası: ' + res.status);
+        countrySelect.innerHTML = '<option value="">Ülkeler yükleniyor...</option>';
+
+        const res = await fetch(apiBase + '/api/countries');
+
+        if (!res.ok) {
+          throw new Error('Ülkeler alınamadı. HTTP ' + res.status);
+        }
+
         const data = await res.json();
         const countries = Array.isArray(data) ? data : (data.value ?? []);
 
-        countries.forEach(c => {
-          const opt = document.createElement('option');
-          opt.value = String(c.id ?? '');
-          opt.textContent = c.name ?? '(isim yok)';
-          countrySelect.appendChild(opt);
+        countrySelect.innerHTML = '<option value="">Ülke seçin</option>';
+
+        countries.forEach(country => {
+          const option = document.createElement('option');
+          option.value = String(country.id ?? '');
+          option.textContent = country.name ?? '(isim yok)';
+          countrySelect.appendChild(option);
         });
+
+        console.log('Ülkeler yüklendi:', countries);
       } catch (err) {
         console.error('Ülkeler yüklenirken hata:', err);
+        countrySelect.innerHTML = '<option value="">Ülkeler yüklenemedi</option>';
       }
-    });
+    }
 
-    // Şehirleri Çek
-    countrySelect.addEventListener('change', (e) => {
+    async function loadCities(countryId) {
+      try {
+        citySelect.disabled = true;
+        citySelect.innerHTML = '<option value="">Şehirler yükleniyor...</option>';
+
+        const res = await fetch(apiBase + '/api/cities?countryId=' + encodeURIComponent(countryId));
+
+        if (!res.ok) {
+          throw new Error('Şehirler alınamadı. HTTP ' + res.status);
+        }
+
+        const data = await res.json();
+        const cities = Array.isArray(data) ? data : (data.value ?? []);
+
+        citySelect.innerHTML = '<option value="">Şehir seçin</option>';
+
+        cities.forEach(city => {
+          const option = document.createElement('option');
+          option.value = String(city.id ?? '');
+          option.textContent = city.name ?? '(isim yok)';
+          citySelect.appendChild(option);
+        });
+
+        citySelect.disabled = false;
+
+        console.log('Şehirler yüklendi:', cities);
+      } catch (err) {
+        console.error('Şehirler yüklenirken hata:', err);
+        citySelect.innerHTML = '<option value="">Şehirler yüklenemedi</option>';
+      }
+    }
+
+    countrySelect.addEventListener('change', () => {
       const selectedId = countrySelect.value;
-      citySelect.disabled = !selectedId;
-      citySelect.innerHTML = '<option value="">-- Şehir seçin --</option>';
 
-      if (selectedId) {
-        fetch(${apiBase}/api/cities?countryId=${encodeURIComponent(selectedId)})
-          .then(r => {
-            if (!r.ok) throw new Error('Ağ hatası: ' + r.status);
-            return r.json();
-          })
-          .then(cities => {
-            citySelect.innerHTML = '<option value="">-- Şehir seçin --</option>';
-            (Array.isArray(cities) ? cities : (cities.value ?? [])).forEach(city => {
-              const o = document.createElement('option');
-              o.value = String(city.id ?? '');
-              o.textContent = city.name ?? '(isim yok)';
-              citySelect.appendChild(o);
-            });
-          })
-          .catch(err => console.error('Şehirler yüklenirken hata:', err));
+      citySelect.innerHTML = '<option value="">Önce ülke seçin</option>';
+      citySelect.disabled = true;
+
+      if (!selectedId) {
+        return;
       }
+
+      loadCities(selectedId);
     });
 
-    // Yapay Zeka Metnini Zaman Çizelgesine Dönüştüren Fonksiyon
     function parseRouteToTimeline(text) {
-      let htmlText = text.replace(/\\(.?)\\*/g, '<span class="ai-bold-text">$1</span>');
-      const lines = htmlText.split('\n');
+      if (!text) {
+        return '<div class="alert alert-warning">Rota sonucu boş geldi.</div>';
+      }
+
+      const lines = String(text).split('\n');
       let outputHtml = '<div class="itinerary-timeline">';
       let introHtml = '';
       let animationDelay = 0;
 
-      lines.forEach(line => {
-        line = line.trim();
-        if (!line || line.toLowerCase() === 'başarılı') return;
+      lines.forEach(rawLine => {
+        const line = String(rawLine ?? '').trim();
+
+        if (!line || line.toLowerCase() === 'başarılı') {
+          return;
+        }
 
         const match = line.match(/^(\d{2}:\d{2})\s*[-–]\s*(.*)$/);
 
         if (match) {
           const time = match[1];
-          let restOfLine = match[2];
+          const restOfLine = match[2];
+
           let title = restOfLine;
           let desc = '';
 
           const colonIndex = restOfLine.indexOf(':');
+
           if (colonIndex > -1) {
             title = restOfLine.substring(0, colonIndex).trim();
             desc = restOfLine.substring(colonIndex + 1).trim();
@@ -366,51 +412,39 @@
           outputHtml += `
             <div class="timeline-item" style="animation-delay: ${animationDelay}s">
               <div class="timeline-marker"></div>
-              <div class="timeline-time"><i class="bi bi-clock me-1"></i>${time}</div>
+              <div class="timeline-time"><i class="bi bi-clock me-1"></i>${escapeHtml(time)}</div>
               <div class="timeline-content">
-                <div class="timeline-title">${title}</div>
-                <p class="timeline-desc">${desc}</p>
+                <div class="timeline-title">${formatAiText(title)}</div>
+                <p class="timeline-desc">${formatAiText(desc)}</p>
               </div>
             </div>
           `;
         } else {
-          introHtml += <div class="route-intro-text"><i class="bi bi-stars text-primary me-2"></i>${line}</div>;
+          introHtml += `
+            <div class="route-intro-text">
+              <i class="bi bi-stars text-primary me-2"></i>${formatAiText(line)}
+            </div>
+          `;
         }
       });
 
       outputHtml += '</div>';
+
       return introHtml + outputHtml;
     }
 
-    const wakeUpTime = document.getElementById('wakeUpTime');
-    const travelNotes = document.getElementById('travelNotes');
-    const btnCreateRoute = document.getElementById('btnCreateRoute');
-    const routeResult = document.getElementById('routeResult');
-    const routeResultContent = document.getElementById('routeResultContent');
-    const formError = document.getElementById('formError');
-
     btnCreateRoute.addEventListener('click', async () => {
-      // Validasyon (Hata kontrolü)
       if (countrySelect.value === '' || citySelect.value === '' || wakeUpTime.value === '') {
         formError.classList.remove('d-none');
         return;
-      } else {
-        formError.classList.add('d-none');
       }
+
+      formError.classList.add('d-none');
 
       const countryName = countrySelect.options[countrySelect.selectedIndex]?.text || '';
       const cityName = citySelect.options[citySelect.selectedIndex]?.text || '';
       const wake = wakeUpTime.value || '';
       const notes = travelNotes.value || '';
-
-      const originalBtnHtml = btnCreateRoute.innerHTML;
-      btnCreateRoute.disabled = true;
-      btnCreateRoute.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Planlanıyor...';
-
-      // Boş durumu gizle, sonuç alanını temizle
-      emptyState.classList.add('d-none');
-      routeResult.classList.add('d-none');
-      routeResultContent.innerHTML = ''; 
 
       const payload = {
         CountryName: countryName,
@@ -419,41 +453,63 @@
         UserNotes: notes
       };
 
+      const originalBtnHtml = btnCreateRoute.innerHTML;
+
+      btnCreateRoute.disabled = true;
+      btnCreateRoute.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Planlanıyor...';
+
+      emptyState.classList.add('d-none');
+      routeResult.classList.add('d-none');
+      routeResultContent.innerHTML = '';
+
       try {
-        const res = await fetch(${apiBase}/api/route/generate, {
+        const res = await fetch(apiBase + '/api/route/generate', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify(payload)
         });
 
         if (!res.ok) {
           const txt = await res.text();
-          routeResultContent.innerHTML = <div class="alert alert-danger" style="font-size:0.85rem;">Sunucu hatası: ${res.status}<br>${txt}</div>;
+
+          routeResultContent.innerHTML =
+            '<div class="alert alert-danger" style="font-size:0.85rem;">Sunucu hatası: '
+            + res.status
+            + '<br>'
+            + escapeHtml(txt)
+            + '</div>';
+
           routeResult.classList.remove('d-none');
           return;
         }
 
         const result = await res.json();
-        const draft = result.DraftRoute ?? result.draftRoute ?? '';
-        
+        const draft = result.DraftRoute ?? result.draftRoute ?? result.route ?? result.message ?? '';
+
         routeResultContent.innerHTML = parseRouteToTimeline(draft);
         routeResult.classList.remove('d-none');
-        
-        // Telefonda isek ve buton tıklandıysa aşağıya kaydır (Mobilde yan yana değil alt alta olduğu için)
-        if(window.innerWidth < 992) {
-            setTimeout(() => {
-                routeResult.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
+
+        if (window.innerWidth < 992) {
+          setTimeout(() => {
+            routeResult.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
         }
-        
       } catch (err) {
-        routeResultContent.innerHTML = <div class="alert alert-danger" style="font-size:0.85rem;">Hata: ${err.message || err}</div>;
+        routeResultContent.innerHTML =
+          '<div class="alert alert-danger" style="font-size:0.85rem;">Hata: '
+          + escapeHtml(err.message || err)
+          + '</div>';
+
         routeResult.classList.remove('d-none');
       } finally {
         btnCreateRoute.disabled = false;
         btnCreateRoute.innerHTML = originalBtnHtml;
       }
     });
+
+    document.addEventListener('DOMContentLoaded', loadCountries);
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
