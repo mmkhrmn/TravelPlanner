@@ -411,6 +411,4 @@ http://localhost:5146/api/countries
 
 - `appsettings.json` içindeki `Gemini:ApiKey` değerini kontrol edin.
 - API key’in geçerli olduğundan emin olun.
-- Gerçek API key’i GitHub’a göndermeyin.
-
 ---
